@@ -42,7 +42,7 @@ void loop() {
 
   if(temperature == TEMPERATURE_INVALID) {
     digitalWrite(RELAY_PIN, LOW);
-    heating_enabled = false
+    heating_enabled = false;
     #ifdef DEBUG
       Serial.println("Temperature is unavailable");
       Serial.println("Heating is OFF");
