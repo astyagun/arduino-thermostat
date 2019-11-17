@@ -64,6 +64,8 @@ void loop() {
     }
   }
 
+  delay(100);
+
   #ifdef DEBUG_LOOP_LENGTH
     if(loopNumber <= MAX_LOOPS_TO_MEASURE) {
       unsigned long now = millis();
