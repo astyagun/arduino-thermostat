@@ -1,4 +1,4 @@
-ARDUINO_LIBS = OneWire DallasTemperature
+ARDUINO_LIBS = Bounce2 DallasTemperature OneWire
 ARDUINO_SKETCHBOOK = ${HOME}/Code/Arduino
 BOARD_TAG = uno
 

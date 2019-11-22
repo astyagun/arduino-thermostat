@@ -1,14 +1,24 @@
 #include <Arduino.h>
+#include <Bounce2.h>
 #include "temperature_sensor.h"
 
 /* #define DEBUG_LOOP_LENGTH */
 
-#define RELAY_PIN 12
+#define RELAY_PIN A2
+
+#define BUTTON_PIN 12
+#define BUTTON_DEBOUNCE_INTERVAL 25
+
+#define LED_PIN 11
+#define LED_BRIGHTNESS 1
+
 #define TARGET_TEMPERATURE 24.0
 #define TARGET_TEMPERATURE_HYSTERESIS 0.5
 
+Bounce debouncer = Bounce();
 TemperatureSensor temperature_sensor;
 bool heating_enabled = false;
+bool thermostat_enabled = true;
 
 #ifdef DEBUG_LOOP_LENGTH
   #define MAX_LOOPS_TO_MEASURE 1500
@@ -34,37 +44,61 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
 
+  debouncer.attach(BUTTON_PIN);
+  debouncer.interval(BUTTON_DEBOUNCE_INTERVAL);
+
+  pinMode(LED_PIN, OUTPUT);
+  analogWrite(LED_PIN, thermostat_enabled);
+
   temperature_sensor.setup();
 }
 
 void loop() {
   float temperature = temperature_sensor.measure();
 
-  if(temperature == TEMPERATURE_INVALID) {
-    digitalWrite(RELAY_PIN, LOW);
-    heating_enabled = false;
-    #ifdef DEBUG
-      Serial.println("Temperature is unavailable");
-      Serial.println("Heating is OFF");
-    #endif
-  } else {
-    if(heating_enabled && temperature > TARGET_TEMPERATURE + TARGET_TEMPERATURE_HYSTERESIS) {
+  debouncer.update();
+  if(debouncer.fell()) {
+    thermostat_enabled = !thermostat_enabled;
+    if (thermostat_enabled) {
+      analogWrite(LED_PIN, LED_BRIGHTNESS);
+      #ifdef DEBUG
+        Serial.println("Thermostat is ENABLED");
+      #endif
+    } else {
       digitalWrite(RELAY_PIN, LOW);
       heating_enabled = false;
+      analogWrite(LED_PIN, LOW);
       #ifdef DEBUG
-        Serial.println("Heating is OFF");
-      #endif
-    }
-    if(!heating_enabled && temperature < TARGET_TEMPERATURE - TARGET_TEMPERATURE_HYSTERESIS) {
-      digitalWrite(RELAY_PIN, HIGH);
-      heating_enabled = true;
-      #ifdef DEBUG
-        Serial.println("Heating is ON");
+        Serial.println("Thermostat is DISABLED");
       #endif
     }
   }
 
-  delay(100);
+  if(thermostat_enabled) {
+    if(temperature == TEMPERATURE_INVALID) {
+      digitalWrite(RELAY_PIN, LOW);
+      heating_enabled = false;
+      #ifdef DEBUG
+        Serial.println("Temperature is unavailable");
+        Serial.println("Heating is OFF");
+      #endif
+    } else {
+      if(heating_enabled && temperature > TARGET_TEMPERATURE + TARGET_TEMPERATURE_HYSTERESIS) {
+        digitalWrite(RELAY_PIN, LOW);
+        heating_enabled = false;
+        #ifdef DEBUG
+          Serial.println("Heating is OFF");
+        #endif
+      }
+      if(!heating_enabled && temperature < TARGET_TEMPERATURE - TARGET_TEMPERATURE_HYSTERESIS) {
+        digitalWrite(RELAY_PIN, HIGH);
+        heating_enabled = true;
+        #ifdef DEBUG
+          Serial.println("Heating is ON");
+        #endif
+      }
+    }
+  }
 
   #ifdef DEBUG_LOOP_LENGTH
     if(loopNumber <= MAX_LOOPS_TO_MEASURE) {
