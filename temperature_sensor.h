@@ -1,8 +1,7 @@
 // DS18B20+ sensor library: https://github.com/milesburton/Arduino-Temperature-Control-Library
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
-/* #define DEBUG */
+#include "common.h"
 
 #define TEMPERATURE_SENSOR_PIN A4
 #define TEMPERATURE_SENSOR_READ_DELAY 750
