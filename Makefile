@@ -1,4 +1,4 @@
-ARDUINO_LIBS = DallasTemperature EEPROM JLed OneButton OneWire
+ARDUINO_LIBS = DallasTemperature EEPROM OneButton OneWire
 ARDUINO_SKETCHBOOK = ${HOME}/Code/Arduino
 BOARD_TAG = uno
 
